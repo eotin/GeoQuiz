@@ -1,4 +1,4 @@
-package com.bignerdbranch.android.geoquiz;
+package com.bignerdranch.android.geoquiz;
 
 /**
  * Created by eotin on 9/28/2016.

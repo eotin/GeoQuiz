@@ -1,4 +1,4 @@
-package com.bignerdbranch.android.geoquiz;
+package com.bignerdranch.android.geoquiz;
 
 import org.junit.Test;
 
