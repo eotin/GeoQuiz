@@ -1,6 +1,7 @@
 package com.bignerdranch.android.geoquiz;
 
 
+import android.app.Activity;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -19,6 +20,9 @@ public class QuizActivity extends AppCompatActivity {
     // SaveBundleKeys
     private static final String KEY_INDEX = "index";
 
+    // Request Code
+    private static final int REQUEST_CODE_CHEAT = 0;
+
     private Button mTrueButton;
     private Button mFalseButton;
     //private Button mNextButton;
@@ -27,6 +31,9 @@ public class QuizActivity extends AppCompatActivity {
     private ImageButton mNextButton;
     private ImageButton mPreviousButton;
     private TextView mQuestionTextView;
+
+    private int mCurrentIndex = 0;
+    private boolean mIsCheater;
 
     private Question[] mQuestionBank = new Question[] {
       new Question(R.string.question_oceans, true),
@@ -37,7 +44,20 @@ public class QuizActivity extends AppCompatActivity {
       //new Question(R.string.question_love, true),
     };
 
-    private int mCurrentIndex = 0;
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode != Activity.RESULT_OK) {
+           return ;
+        }
+
+        if (requestCode == REQUEST_CODE_CHEAT) {
+            if (data == null) {
+                return ;
+            }
+
+            mIsCheater = CheatActivity.wasAnswerShown(data);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -80,8 +100,9 @@ public class QuizActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                // Start Activity
-                Intent i = new Intent(QuizActivity.this, CheatActivity.class);
-                startActivity(i);
+                boolean answerIsTrue = mQuestionBank[mCurrentIndex].isAnswerTrue();
+                Intent i = CheatActivity.newIntent(QuizActivity.this, answerIsTrue);
+                startActivityForResult(i, REQUEST_CODE_CHEAT);
             }
         });
 
@@ -130,11 +151,14 @@ public class QuizActivity extends AppCompatActivity {
         boolean answerIsTrue = mQuestionBank[mCurrentIndex].isAnswerTrue();
         int messageResId = 0;
 
-        if (userPressedTrue == answerIsTrue){
-            messageResId = R.string.correct_toast;
-        }
-        else{
-            messageResId = R.string.incorrect_toast;
+        if (mIsCheater) {
+            messageResId = R.string.judgment_toast;
+        } else {
+            if (userPressedTrue == answerIsTrue) {
+                messageResId = R.string.correct_toast;
+            } else {
+                messageResId = R.string.incorrect_toast;
+            }
         }
 
         Toast.makeText(QuizActivity.this, messageResId, Toast.LENGTH_SHORT).show();
@@ -142,6 +166,8 @@ public class QuizActivity extends AppCompatActivity {
 
     private void goToQuestion(int questionIndex)
     {
+        mIsCheater = false ;
+
         if (questionIndex == -1) {
             questionIndex = mQuestionBank.length -1 ;
         }
